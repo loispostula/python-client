@@ -439,6 +439,11 @@ def test_link_field_items_must_be_valid():
         Link(fields=[123])
 
 
+def test_link_custom_attributes_must_be_dict():
+    with pytest.raises(TypeError):
+        Link(custom_attributes=[])
+
+
 # Invalid calls to '.action()' should error.
 
 def test_keys_should_be_a_list_or_string(doc):

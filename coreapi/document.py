@@ -46,8 +46,8 @@ def _key_sorting(item):
 
 # NOTE: 'type', 'description' and 'example' are now deprecated,
 #       in favor of 'schema'.
-Field = namedtuple('Field', ['name', 'required', 'location', 'schema', 'description', 'type', 'example'])
-Field.__new__.__defaults__ = (False, '', None, None, None, None)
+Field = namedtuple('Field', ['name', 'required', 'location', 'schema', 'description', 'type', 'example', 'custom_attributes'])
+Field.__new__.__defaults__ = (False, '', None, None, None, None, {})
 
 
 # The Core API primitives:
@@ -187,7 +187,7 @@ class Link(itypes.Object):
     """
     Links represent the actions that a client may perform.
     """
-    def __init__(self, url=None, action=None, encoding=None, transform=None, title=None, description=None, fields=None):
+    def __init__(self, url=None, action=None, encoding=None, transform=None, title=None, description=None, fields=None, custom_attributes=None):
         if (url is not None) and (not isinstance(url, string_types)):
             raise TypeError("Argument 'url' must be a string.")
         if (action is not None) and (not isinstance(action, string_types)):
@@ -207,6 +207,8 @@ class Link(itypes.Object):
             for item in fields
         ]):
             raise TypeError("Argument 'fields' must be a list of strings or fields.")
+        if(custom_attributes is not None) and (not isinstance(custom_attributes, dict)):
+            raise TypeError("Argument 'custom_attributes' must be a dict")
 
         self._url = '' if (url is None) else url
         self._action = '' if (action is None) else action
@@ -218,6 +220,7 @@ class Link(itypes.Object):
             item if isinstance(item, Field) else Field(item, required=False, location='')
             for item in fields
         ])
+        self._custom_attributes = {} if (custom_attributes is None) else custom_attributes
 
     @property
     def url(self):
@@ -247,6 +250,10 @@ class Link(itypes.Object):
     def fields(self):
         return self._fields
 
+    @property
+    def custom_attributes(self):
+        return self._custom_attributes
+
     def __eq__(self, other):
         return (
             isinstance(other, Link) and
@@ -255,7 +262,8 @@ class Link(itypes.Object):
             self.encoding == other.encoding and
             self.transform == other.transform and
             self.description == other.description and
-            sorted(self.fields, key=lambda f: f.name) == sorted(other.fields, key=lambda f: f.name)
+            sorted(self.fields, key=lambda f: f.name) == sorted(other.fields, key=lambda f: f.name) and
+            self.custom_attributes == other.custom_attributes
         )
 
     def __repr__(self):
